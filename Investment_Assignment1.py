@@ -97,6 +97,68 @@ plt.plot(x, trend)
 Second Regression
 '''
 
+beta_const = []
+beta_Mkt = []
+beta_SMB = []
+beta_HML = []
+
+#appended the betas of each of the 10 regressions to their "specific" variable list, in order to take these variable as the independent variables in the next regression
+
+for i in range(10):     
+        beta_const.append(coef_mod[i][0])
+        beta_Mkt.append(coef_mod[i][1])
+        beta_SMB.append(coef_mod[i][2])
+        beta_HML.append(coef_mod[i][3])
+
+parameters2 = [beta_const, beta_Mkt, beta_SMB, beta_HML]
+coef_mod2 = {"beta_const":beta_const, "risk_premium_Mkt": beta_Mkt, "risk_premium_SMB":beta_SMB, "risk_premium_HML": beta_HML}
+coef_mod2 = pd.DataFrame(coef_mod2)
+
+Y_var2 = []   #here I calculate the average return of each of the 10 portfolios for the given period
+for j in range(1,11):
+    x = 0
+    for i in range(len(mpr)): 
+        x += mpr.iloc[i][j]
+    x = x/12
+    Y_var2.append(x)
+
+dependent_data = pd.DataFrame(Y_var2, columns=["Y_var2"]) #here I make Y_var2 a data frame
+dependent_data
+
+model2 = sm.OLS(dependent_data, coef_mod2)
+result2 = model2.fit()  
+print(result2.summary())  
+
+'''
+based on the above results we can conclude that the model describes in a very good maner the underlying returns.
+In specific the risk spread of the Market along with the beta of SMB are statisticaly significant and the model gives us a 99% accuracy.
+'''
+
+xa_1 = []
+for i in range(10):
+    xa_1.append(-0.5162*coef_mod2["risk_premium_Mkt"][i])
+xa_2 = []
+for i in range(10):
+    xa_2.append(0.777*coef_mod2["risk_premium_SMB"][i])
+
+
+xa = []
+for i in range(10):
+    xa.append(xa_1[i]+xa_2[i])
+
+reg2 = np.polyfit(xa,Y_var2, deg = 1)
+reg2
+
+trend2 = np.polyval(reg2, xa )
+plt.scatter(xa,Y_var2)
+
+plt.plot(xa, trend2)
+plt.xlabel('Predicted Returns')
+plt.ylabel('Actual Returns')
+plt.title('Second Regression')
+
+
+
 
 
 
